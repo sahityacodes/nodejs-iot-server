@@ -1,12 +1,26 @@
 const router = require('express').Router();
-const Beacon = require('../models/Beacon');
-var dateFormat = require("dateformat");
-  
-router.get('/', async (req, res) => {
-    try{
-      const beacons = await Beacon.find();
-        res.send(beacons);
-    }catch(err){
+const { getDurationInactiveBeacons, getBeaconCountPerDayAndHour, getBeaconCountPerRoom } = require('../service/scannedData-handler');
+
+router.get('/duration', async (req, res) => {
+    try {
+        getDurationInactiveBeacons(res);
+    } catch (err) {
+        res.status(400).send(err);
+    }
+});
+
+router.get('/beaconCountPerDay', async (req, res) => {
+    try {
+        getBeaconCountPerDayAndHour(res);
+    } catch (err) {
+        res.status(400).send(err);
+    }
+});
+
+router.get('/beaconCountPerRoom', async (req, res) => {
+    try {
+        getBeaconCountPerRoom(res);
+    } catch (err) {
         res.status(400).send(err);
     }
 });

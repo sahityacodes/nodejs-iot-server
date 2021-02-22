@@ -6,10 +6,10 @@ const BeaconSchema = mongoose.Schema({
         type: String,
     },
     inTime: {
-        type: String,
+        type: Date,
     },
     outTime: {
-        type: String,
+        type: Date,
     },
     status: {
         type: String,

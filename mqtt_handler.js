@@ -1,10 +1,10 @@
 var mosca = require('mosca');
-const { eventNames } = require('./models/Beacon');
-var beacon = require('./service/scannedData-handler');
+const { sendMessage } = require('./service/sms-service');
 require("dotenv/config");
 
 var settings = {
   port: 1883,
+  http: { port: 8080, bundle:true, static: './' }
 };
 
 var server = new mosca.Server(settings, function () {
@@ -23,27 +23,18 @@ server.on("clientConnected", function (client) {
 
 // fired when a message is received
 server.on('published', function (packet, client) {
-  beacon.addBeacons(packet.payload.toString());
+  console.log(packet.payload.toString());
+  messageToClient(packet.payload.toString())
 });
 
 // fired when a client subscribes to a topic
-server.on("subscribed", function (topic, client) {
+server.on('subscribed', function (topic, client) {
   console.log("subscribed : ", topic);
-  beacon.getLimit().then((count) => {
-    if (count >= 15) {
-      server.publish(message);
-    }
-  });
 });
 
 // fired when a client subscribes to a topic
-server.on("unsubscribed", function (topic, client) {
+server.on('unsubscribed', function (topic, client) {
   console.log("unsubscribed : ", topic);
-});
-
-// fired when a client is disconnecting
-server.on("clientDisconnecting", function (client) {
-  console.log("clientDisconnecting : ", client.id);
 });
 
 // fired when a client is disconnected
@@ -52,13 +43,20 @@ server.on("clientDisconnected", function (client) {
 });
 
 var message = {
-  topic: '/'+process.env.FLOOR_NO+'/'+process.env.ROOM_NO,
-  payload: { Limit: "Limit Reached" },
-  qos: 2,
-  retain: true
+  topic: '/1/101',
+  payload: ''
 };
 
-
-
+function messageToClient(payload) {
+  try{
+  if(typeof JSON.parse(payload) === 'object' && JSON.parse(payload).length > 2){
+      message.payload = "Limit Reached";
+      server.publish(message);
+      sendMessage();
+  }
+  }catch(err){
+    console.log('Not a list');
+  }
+}
 
 module.exports = { server };
